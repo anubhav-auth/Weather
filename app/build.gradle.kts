@@ -1,7 +1,3 @@
-import org.jetbrains.kotlin.fir.resolve.calls.tower.TowerScopeLevel
-import java.io.InputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -62,6 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,4 +87,5 @@ dependencies {
 //    coil
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt:coil:2.6.0")
+
 }

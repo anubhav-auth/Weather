@@ -1,6 +1,6 @@
 package com.example.weather.data.model.location
 
-data class LocationDataItem(
+data class LocationQueryDataItem(
     val country: String,
     val id: Int,
     val lat: Double,
