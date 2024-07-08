@@ -1,6 +1,5 @@
-package com.example.weather.Presentation
+package com.example.weather.presentation
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,19 +19,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,7 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.weather.R
 import com.example.weather.data.ApiKey
-import com.example.weather.data.Imagedata
+import com.example.weather.data.ImageData
+import com.example.weather.data.model.weather.Forecast
 import com.example.weather.data.model.weather.Forecastday
 import com.example.weather.data.model.weather.Hour
 import com.example.weather.data.model.weather.WeatherData
@@ -52,10 +53,8 @@ import com.example.weather.ui.theme.weatherDayBackGrad3
 import com.example.weather.ui.theme.weatherNightBackGrad1
 import com.example.weather.ui.theme.weatherNightBackGrad3
 import com.google.android.gms.location.FusedLocationProviderClient
+import java.util.Locale
 
-fun String.toTitleCase(): String {
-    return "${this[0].uppercase()}${this.substring(1)}"
-}
 
 fun String.getTimePart(): String {
     return this.split(" ")[1]
@@ -63,13 +62,14 @@ fun String.getTimePart(): String {
 
 fun String.convertTo12Hr(): String {
     val hr = this.split(":")[0].toInt()
-    if (hr == 0) return "12:00 AM"
-    else if (hr == 12) return "12:00 PM"
-    else if (hr > 12) return "${hr - 12}:00 PM"
-    else return "${hr}:00 AM"
+    return if (hr == 0) "12:00 AM"
+    else if (hr == 12) "12:00 PM"
+    else if (hr > 12) "${hr - 12}:00 PM"
+    else "${hr}:00 AM"
 }
-fun Double.DecimalPlace2():Double{
-    return String.format("%.2f", this).toDouble()
+
+fun Double.decimalPlace2(): Double {
+    return String.format(Locale("English"), "%.2f", this).toDouble()
 }
 
 fun generateHourlyForecastList(data: Forecastday?): List<ForecastHourlyContent> {
@@ -91,36 +91,23 @@ fun generateHourlyForecastList(data: Forecastday?): List<ForecastHourlyContent> 
     return forecastList
 }
 
-
 @Composable
-fun MainScreen(
+fun DisplayScreen(
     navController: NavController,
     viewModel: WeatherViewModel,
-    fusedLocationProviderClient: FusedLocationProviderClient
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    location: String
 ) {
-    val context = LocalContext.current
     val apiKey = ApiKey.WEATHER_API_KEY
 
-    val a = viewModel.getLatLang(fusedLocationProviderClient = fusedLocationProviderClient)
-    Log.d("my tag", a)
-
-    viewModel.fetchWeatherData(apiKey, a, 8, "yes", "no")
-
-    val weatherData = viewModel.weatherData.collectAsState().value
-
-
-
-    LaunchedEffect(key1 = viewModel.showErrorChannel) {
-//        viewModel.showErrorChannel.collectLatest { show ->
-//            if (show) Toast.makeText(context, "error", Toast.LENGTH_SHORT).show()
-//        }
-    }
+    viewModel.fetchWeatherData(apiKey, location)
+    val weatherData by viewModel.weatherData.collectAsState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        weatherData?.let {
+        weatherData?.let { weatherData ->
             Column(modifier = Modifier.fillMaxSize()) {
 
                 LazyColumn(
@@ -132,19 +119,33 @@ fun MainScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(end = 12.dp, top = 12.dp),
-                            horizontalArrangement = Arrangement.End
+                                .padding(vertical = 12.dp, horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
+
                             Icon(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = "search",
-                                modifier = Modifier.size(36.dp).clickable {
-                                    navController.navigate("search_screen")
-                                },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clickable {
+                                        navController.navigate("search_screen")
+                                    },
+                                tint = Color.White
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = "reload",
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clickable {
+                                        viewModel.getLatLang(fusedLocationProviderClient = fusedLocationProviderClient)
+                                        viewModel.fetchWeatherData(apiKey, location, 8, "yes", "no")
+                                    },
                                 tint = Color.White
                             )
                         }
-                        Spacer(modifier = Modifier.size(50.dp))
+                        Spacer(modifier = Modifier.size(30.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -153,16 +154,17 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
 
-                            Column {
+                            Column(Modifier.fillMaxWidth(0.55f)) {
                                 Text(
-                                    text = "${it.current.temp_c}°C",
+                                    text = "${weatherData.current.temp_c}°C",
                                     color = Color.White,
                                     fontSize = 51.sp,
                                     fontWeight = FontWeight.ExtraBold
                                 )
                                 Spacer(modifier = Modifier.size(6.dp))
                                 Text(
-                                    text = it.current.condition.text, color = Color.White,
+                                    text = weatherData.current.condition.text, color = Color.White,
+                                    softWrap = true,
                                     fontSize = 21.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -172,7 +174,7 @@ fun MainScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = it.location.name, color = Color.White,
+                                        text = weatherData.location.name, color = Color.White,
                                         fontSize = 21.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
@@ -183,34 +185,37 @@ fun MainScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-
+                                Text(
+                                    text = "${weatherData.forecast.forecastday[0].day.maxtemp_c}°/${
+                                        weatherData.forecast.forecastday[0].day.mintemp_c
+                                    }°",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Light,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    textAlign = TextAlign.Start
+                                )
                                 Spacer(modifier = Modifier.size(6.dp))
                             }
-                            Image(
-                                painter = painterResource(id = Imagedata.getImg(it.current.condition.text)),
-                                contentDescription = it.current.condition.text,
-                                modifier = Modifier.size(120.dp)
-                            )
+                            ImageData.getImg(weatherData.current.condition.text)?.let { imageData ->
+                                Image(
+                                    painter = painterResource(id = imageData),
+                                    contentDescription = weatherData.current.condition.text,
+                                    modifier = Modifier.fillMaxSize(),//.size(120.dp),
+                                    alignment = Alignment.Center
+                                )
+                            }
+
                         }
-                        Text(
-                            text = "${it.forecast.forecastday[0].day.maxtemp_c}°/${
-                                it.forecast.forecastday[0].day.mintemp_c
-                            }°",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Light,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 21.dp),
-                            textAlign = TextAlign.Start
-                        )
+
 
                         val hourlyForecastList =
-                            generateHourlyForecastList(it.forecast.forecastday[0])
+                            generateHourlyForecastList(weatherData.forecast.forecastday[0])
 
                         Spacer(modifier = Modifier.size(30.dp))
                         Text(
-                            text = "${it.forecast.forecastday[0].day.condition.text}. Low ${it.forecast.forecastday[0].day.mintemp_c}°C",
+                            text = "${weatherData.forecast.forecastday[0].day.condition.text}. Low ${weatherData.forecast.forecastday[0].day.mintemp_c}°C",
                             color = Color.White,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.ExtraLight,
@@ -221,41 +226,45 @@ fun MainScreen(
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         ForecastHourlyMenu(items = hourlyForecastList)
-
+                        Button(onClick = {
+                            navController.navigate("future_prediction_screen")
+                        }) {
+                            Text(text = "click")
+                        }
                         Spacer(modifier = Modifier.size(15.dp))
                         WeatherDetailItem(
                             item = WeatherDetailContent(
-                                it,
-                                it.location.name,
-                                it.location.region,
-                                it.forecast.forecastday[0].astro.sunrise,
-                                it.forecast.forecastday[0].astro.sunset,
-                                it.forecast.forecastday[0].astro.moonrise,
-                                it.forecast.forecastday[0].astro.moonset,
-                                it.current.feelslike_c,
-                                it.forecast.forecastday[0].day.maxtemp_c,
-                                it.forecast.forecastday[0].day.mintemp_c,
-                                it.current.wind_kph,
-                                it.current.wind_degree,
-                                it.current.wind_dir,
-                                it.current.humidity,
-                                it.current.dewpoint_c,
-                                it.current.pressure_mb,
-                                it.current.uv,
-                                it.current.vis_km,
-                                it.forecast.forecastday[0].astro.moon_phase
+                                weatherData,
+                                weatherData.location.name,
+                                weatherData.location.region,
+                                weatherData.forecast.forecastday[0].astro.sunrise,
+                                weatherData.forecast.forecastday[0].astro.sunset,
+                                weatherData.forecast.forecastday[0].astro.moonrise,
+                                weatherData.forecast.forecastday[0].astro.moonset,
+                                weatherData.current.feelslike_c,
+                                weatherData.forecast.forecastday[0].day.maxtemp_c,
+                                weatherData.forecast.forecastday[0].day.mintemp_c,
+                                weatherData.current.wind_kph,
+                                weatherData.current.wind_degree,
+                                weatherData.current.wind_dir,
+                                weatherData.current.humidity,
+                                weatherData.current.dewpoint_c,
+                                weatherData.current.pressure_mb,
+                                weatherData.current.uv,
+                                weatherData.current.vis_km,
+                                weatherData.forecast.forecastday[0].astro.moon_phase
                             )
                         )
                         AirQualityItem(
                             item = AirQualityContent(
-                            it.forecast.forecastday[0].day.air_quality.co,
-                            it.forecast.forecastday[0].day.air_quality.no2,
-                            it.forecast.forecastday[0].day.air_quality.o3,
-                            it.forecast.forecastday[0].day.air_quality.so2,
-                            it.forecast.forecastday[0].day.air_quality.pm2_5,
-                            it.forecast.forecastday[0].day.air_quality.pm10,
-                            it.forecast.forecastday[0].day.air_quality.usEpaIndex,
-                            it.forecast.forecastday[0].day.air_quality.gbDefraIndex,
+                                weatherData.forecast.forecastday[0].day.air_quality.co,
+                                weatherData.forecast.forecastday[0].day.air_quality.no2,
+                                weatherData.forecast.forecastday[0].day.air_quality.o3,
+                                weatherData.forecast.forecastday[0].day.air_quality.so2,
+                                weatherData.forecast.forecastday[0].day.air_quality.pm2_5,
+                                weatherData.forecast.forecastday[0].day.air_quality.pm10,
+                                weatherData.forecast.forecastday[0].day.air_quality.usEpaIndex,
+                                weatherData.forecast.forecastday[0].day.air_quality.gbDefraIndex,
                             )
                         )
                     }
@@ -264,8 +273,6 @@ fun MainScreen(
             }
         }
     }
-
-
 }
 
 
@@ -302,11 +309,14 @@ fun ForecastHourlyElement(item: ForecastHourlyContent) {
             fontSize = 12.sp
         )
         Spacer(modifier = Modifier.size(3.dp))
-        Image(
-            painter = painterResource(id = Imagedata.getImg(item.icon)),
-            contentDescription = item.icon,
-            modifier = Modifier.size(20.dp)
-        )
+        ImageData.getImg(item.icon)?.let { imageData ->
+            Image(
+                painter = painterResource(id = imageData),
+                contentDescription = item.icon,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.size(3.dp))
         Text(text = "${item.temp}°", color = Color.White)
     }
@@ -628,7 +638,7 @@ fun WeatherDetailItem(item: WeatherDetailContent) {
                 Text(text = "UV Index", color = Color.White)
             }
             Text(
-                text = "${item.uvIndex}} of 11",
+                text = "${item.uvIndex.toInt()} of 11",
                 color = Color.White
             )
         }
@@ -738,7 +748,7 @@ fun AirQualityItem(item: AirQualityContent) {
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold
         )
-        
+
         Spacer(modifier = Modifier.size(21.dp))
 
 //        co
@@ -760,7 +770,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.co.DecimalPlace2()} µg/m³",
+                    text = "${item.co.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -791,7 +801,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.no2.DecimalPlace2()} µg/m³",
+                    text = "${item.no2.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -822,7 +832,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.o3.DecimalPlace2()} µg/m³",
+                    text = "${item.o3.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -853,7 +863,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.so2.DecimalPlace2()} µg/m³",
+                    text = "${item.so2.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -884,7 +894,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.pm25.DecimalPlace2()} µg/m³",
+                    text = "${item.pm25.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -915,7 +925,7 @@ fun AirQualityItem(item: AirQualityContent) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${item.pm10.DecimalPlace2()} µg/m³",
+                    text = "${item.pm10.decimalPlace2()} µg/m³",
                     color = Color.White
                 )
             }
@@ -932,5 +942,6 @@ data class AirQualityContent(
     val pm25: Double,
     val pm10: Double,
     val usEpaIndex: Int,
-    val gbDefraIndex: Int
+    val gbDefrayIndex: Int
 )
+

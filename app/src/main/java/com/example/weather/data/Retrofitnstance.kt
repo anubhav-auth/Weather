@@ -1,6 +1,6 @@
 package com.example.weather.data
 
-import com.example.weather.Presentation.IpService
+import com.example.weather.presentation.IpService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

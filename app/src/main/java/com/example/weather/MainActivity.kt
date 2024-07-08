@@ -1,5 +1,7 @@
 package com.example.weather
 
+import android.content.Context
+import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,11 +23,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.weather.Presentation.MainScreen
-import com.example.weather.Presentation.SearchScreen
-import com.example.weather.Presentation.WeatherViewModel
 import com.example.weather.data.Retrofitnstance
 import com.example.weather.data.WeatherRepositoryImplementation
+import com.example.weather.presentation.DisplayScreen
+import com.example.weather.presentation.FuturePredictionScreen
+import com.example.weather.presentation.MainScreen
+import com.example.weather.presentation.SearchScreen
+import com.example.weather.presentation.WeatherViewModel
 import com.example.weather.ui.theme.weatherNightBackGrad1
 import com.example.weather.ui.theme.weatherNightBackGrad2
 import com.example.weather.ui.theme.weatherNightBackGrad3
@@ -43,9 +47,6 @@ class MainActivity : ComponentActivity() {
         }
     })
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
-//Initialize it where you need it
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +67,7 @@ class MainActivity : ComponentActivity() {
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             )
         )
-
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         setContent {
             val backGroundColor = listOf(
                 weatherNightBackGrad1,
@@ -75,7 +76,6 @@ class MainActivity : ComponentActivity() {
             )
 
             val navController = rememberNavController()
-
 
 
             Scaffold { paddingValue ->
@@ -87,6 +87,17 @@ class MainActivity : ComponentActivity() {
                         .padding(paddingValue)
                 ) {
                     if (allPermissionGranted) {
+
+                        val isGpsEnabled =
+                            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                        if (isGpsEnabled) {
+//                            Toast.makeText(this@MainActivity, "gps here", Toast.LENGTH_SHORT).show()
+                        } else {
+
+//                            Toast.makeText(this@MainActivity, "gps not", Toast.LENGTH_SHORT).show()
+                        }
+
+
                         NavHost(navController = navController, startDestination = "main_screen") {
                             composable("main_screen") {
                                 MainScreen(
@@ -96,20 +107,29 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("search_screen") {
-                                SearchScreen(viewModel = weatherViewModel)
+                                SearchScreen(viewModel = weatherViewModel, navController = navController)
+                            }
+                            composable("searched_display/{location}") {
+
+                                val location = it.arguments?.getString("location")
+
+                                if (location != null) {
+                                    DisplayScreen(
+                                        navController = navController,
+                                        viewModel = weatherViewModel,
+                                        fusedLocationProviderClient = fusedLocationProviderClient,
+                                        location = location
+                                    )
+                                }
                             }
                             composable("future_prediction_screen") {
-
+                                FuturePredictionScreen(viewModel = weatherViewModel, location = "")
                             }
                         }
-                    } else {
-                        //demopage PlaceHOlder
                     }
                 }
 
             }
-
-
         }
     }
 }

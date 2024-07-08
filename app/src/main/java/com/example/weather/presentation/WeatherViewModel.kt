@@ -1,12 +1,7 @@
-package com.example.weather.Presentation
+package com.example.weather.presentation
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weather.data.Response
@@ -43,6 +38,8 @@ class WeatherViewModel(
     private val _weatherData = MutableStateFlow<WeatherData?>(null)
     val weatherData = _weatherData.asStateFlow()
 
+    private val _latLangData =  MutableStateFlow<String>("london")
+    val latLangData = _latLangData.asStateFlow()
 
     private val _locationQueryData = MutableStateFlow<LocationQueryData?>(null)
     val locationQueryData = _locationQueryData.asStateFlow()
@@ -54,32 +51,32 @@ class WeatherViewModel(
     val showErrorChannel = _showErrorChannel.receiveAsFlow()
 
     @SuppressLint("MissingPermission")
-    @Composable
     fun getLatLang(
         fusedLocationProviderClient: FusedLocationProviderClient,
         priority: Boolean = true
-    ): String {
+    ){
         val accuracy = if (priority) Priority.PRIORITY_HIGH_ACCURACY
         else Priority.PRIORITY_BALANCED_POWER_ACCURACY
 
-        var latLang by remember {
-            mutableStateOf("\"51.507351,-0.127758\"")
-        }
 
         fusedLocationProviderClient.getCurrentLocation(accuracy, CancellationTokenSource().token)
             .addOnSuccessListener { location ->
-                latLang = "${location?.latitude},${location?.longitude}"
+                _latLangData.update {
+//                    if (location.latitude.toString() == "null" && location.latitude.toString() == "null"){
+//                        "london"
+//                    }else {
+                        "${location?.latitude},${location?.longitude}"
+//                    }
+                }
             }
-
-        return latLang
     }
 
     fun fetchWeatherData(
         key: String,
         q: String,
-        days: Int,
-        aqi: String,
-        alerts: String
+        days: Int = 3,
+        aqi: String = "yes",
+        alerts: String = "no"
     ) {
         viewModelScope.launch {
             weatherRepository.getWeatherData(key, q, days, aqi, alerts).collectLatest { result ->
@@ -111,10 +108,12 @@ class WeatherViewModel(
             weatherRepository.locationQuery(key, q).collectLatest { result ->
                 when (result) {
                     is Response.Error -> {
+                        Log.d("mytag", "error")
                         _showErrorChannel.send(true)
                     }
 
                     is Response.Success -> {
+                        Log.d("mytag", "success")
                         result.data?.let { data ->
                             _locationQueryData.update {
                                 data
