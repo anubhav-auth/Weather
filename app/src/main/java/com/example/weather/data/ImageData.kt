@@ -9,7 +9,7 @@ object ImageData {
             "Sunny" -> R.drawable.weather_sunny
             "Clear " -> R.drawable.weather_clear
             "Partly Cloudy " -> R.drawable.weather_partly_cloudy
-            "Partly Cloudy" -> R.drawable.weather_partly_cloudy
+            "Partly cloudy" -> R.drawable.weather_partly_cloudy
             "Cloudy " -> R.drawable.weather_cloudy
             "Overcast " -> R.drawable.weather_overcast
             "Mist" -> R.drawable.weather_mist

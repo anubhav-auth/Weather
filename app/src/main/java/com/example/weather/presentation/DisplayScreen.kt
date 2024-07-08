@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -42,7 +42,6 @@ import androidx.navigation.NavController
 import com.example.weather.R
 import com.example.weather.data.ApiKey
 import com.example.weather.data.ImageData
-import com.example.weather.data.model.weather.Forecast
 import com.example.weather.data.model.weather.Forecastday
 import com.example.weather.data.model.weather.Hour
 import com.example.weather.data.model.weather.WeatherData
@@ -102,179 +101,231 @@ fun DisplayScreen(
 
     viewModel.fetchWeatherData(apiKey, location)
     val weatherData by viewModel.weatherData.collectAsState()
+    if (weatherData == null) {
+        SplashScreen()
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            weatherData?.let { weatherData ->
+                Column(modifier = Modifier.fillMaxSize()) {
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        weatherData?.let { weatherData ->
-            Column(modifier = Modifier.fillMaxSize()) {
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp, horizontal = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = "search",
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            Row(
                                 modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable {
-                                        navController.navigate("search_screen")
-                                    },
-                                tint = Color.White
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.Refresh,
-                                contentDescription = "reload",
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable {
-                                        viewModel.getLatLang(fusedLocationProviderClient = fusedLocationProviderClient)
-                                        viewModel.fetchWeatherData(apiKey, location, 8, "yes", "no")
-                                    },
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.size(30.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 21.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
 
-                            Column(Modifier.fillMaxWidth(0.55f)) {
-                                Text(
-                                    text = "${weatherData.current.temp_c}°C",
-                                    color = Color.White,
-                                    fontSize = 51.sp,
-                                    fontWeight = FontWeight.ExtraBold
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = "search",
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable {
+                                            navController.navigate("search_screen")
+                                        },
+                                    tint = Color.White
                                 )
-                                Spacer(modifier = Modifier.size(6.dp))
-                                Text(
-                                    text = weatherData.current.condition.text, color = Color.White,
-                                    softWrap = true,
-                                    fontSize = 21.sp,
-                                    fontWeight = FontWeight.SemiBold
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "reload",
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable {
+                                            viewModel.getLatLang(fusedLocationProviderClient = fusedLocationProviderClient)
+                                            viewModel.fetchWeatherData(
+                                                apiKey,
+                                                location,
+                                                8,
+                                                "yes",
+                                                "no"
+                                            )
+                                        },
+                                    tint = Color.White
                                 )
-                                Spacer(modifier = Modifier.size(6.dp))
-                                Row(
-                                    horizontalArrangement = Arrangement.Start,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                            }
+                            Spacer(modifier = Modifier.size(30.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 21.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+
+                                Column(Modifier.fillMaxWidth(0.55f)) {
                                     Text(
-                                        text = weatherData.location.name, color = Color.White,
+                                        text = "${weatherData.current.temp_c}°C",
+                                        color = Color.White,
+                                        fontSize = 51.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                    Spacer(modifier = Modifier.size(6.dp))
+                                    Text(
+                                        text = weatherData.current.condition.text,
+                                        color = Color.White,
+                                        softWrap = true,
                                         fontSize = 21.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Icon(
-                                        imageVector = Icons.Filled.LocationOn,
-                                        contentDescription = "location",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
+                                    Spacer(modifier = Modifier.size(6.dp))
+                                    Row(
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = weatherData.location.name, color = Color.White,
+                                            fontSize = 21.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Filled.LocationOn,
+                                            contentDescription = "location",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "${weatherData.forecast.forecastday[0].day.maxtemp_c}°/${
+                                            weatherData.forecast.forecastday[0].day.mintemp_c
+                                        }°",
+                                        color = Color.White,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Light,
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        textAlign = TextAlign.Start
                                     )
+                                    Spacer(modifier = Modifier.size(6.dp))
                                 }
+                                ImageData.getImg(weatherData.current.condition.text)
+                                    ?.let { imageData ->
+                                        Image(
+                                            painter = painterResource(id = imageData),
+                                            contentDescription = weatherData.current.condition.text,
+                                            modifier = Modifier.fillMaxSize(),//.size(120.dp),
+                                            alignment = Alignment.Center
+                                        )
+                                    }
+
+                            }
+
+
+                            val hourlyForecastList =
+                                generateHourlyForecastList(weatherData.forecast.forecastday[0])
+
+                            Spacer(modifier = Modifier.size(30.dp))
+                            Text(
+                                text = "${weatherData.forecast.forecastday[0].day.condition.text}. Low ${weatherData.forecast.forecastday[0].day.mintemp_c}°C",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.ExtraLight,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 21.dp),
+                                textAlign = TextAlign.Start
+                            )
+                            Spacer(modifier = Modifier.size(6.dp))
+                            ForecastHourlyMenu(items = hourlyForecastList)
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(21.dp)
+                                    .clip(RoundedCornerShape(15.dp))
+                                    .fillMaxWidth()
+                                    .height(45.dp)
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            listOf(
+                                                weatherNightBackGrad1,
+                                                weatherDayBackGrad3,
+                                                weatherDayBackGrad2
+                                            )
+                                        )
+                                    )
+                                    .clickable {
+                                        navController.navigate("future_prediction_screen")
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
-                                    text = "${weatherData.forecast.forecastday[0].day.maxtemp_c}°/${
-                                        weatherData.forecast.forecastday[0].day.mintemp_c
-                                    }°",
+                                    text = "3-DAY FORECAST",
                                     color = Color.White,
                                     fontSize = 18.sp,
-                                    fontWeight = FontWeight.Light,
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    textAlign = TextAlign.Start
-                                )
-                                Spacer(modifier = Modifier.size(6.dp))
-                            }
-                            ImageData.getImg(weatherData.current.condition.text)?.let { imageData ->
-                                Image(
-                                    painter = painterResource(id = imageData),
-                                    contentDescription = weatherData.current.condition.text,
-                                    modifier = Modifier.fillMaxSize(),//.size(120.dp),
-                                    alignment = Alignment.Center
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
 
+
+
+                            WeatherDetailItem(
+                                item = WeatherDetailContent(
+                                    weatherData,
+                                    weatherData.location.name,
+                                    weatherData.location.region,
+                                    weatherData.forecast.forecastday[0].astro.sunrise,
+                                    weatherData.forecast.forecastday[0].astro.sunset,
+                                    weatherData.forecast.forecastday[0].astro.moonrise,
+                                    weatherData.forecast.forecastday[0].astro.moonset,
+                                    weatherData.current.feelslike_c,
+                                    weatherData.forecast.forecastday[0].day.maxtemp_c,
+                                    weatherData.forecast.forecastday[0].day.mintemp_c,
+                                    weatherData.current.wind_kph,
+                                    weatherData.current.wind_degree,
+                                    weatherData.current.wind_dir,
+                                    weatherData.current.humidity,
+                                    weatherData.current.dewpoint_c,
+                                    weatherData.current.pressure_mb,
+                                    weatherData.current.uv,
+                                    weatherData.current.vis_km,
+                                    weatherData.forecast.forecastday[0].astro.moon_phase
+                                )
+                            )
+                            AirQualityItem(
+                                item = AirQualityContent(
+                                    weatherData.forecast.forecastday[0].day.air_quality.co,
+                                    weatherData.forecast.forecastday[0].day.air_quality.no2,
+                                    weatherData.forecast.forecastday[0].day.air_quality.o3,
+                                    weatherData.forecast.forecastday[0].day.air_quality.so2,
+                                    weatherData.forecast.forecastday[0].day.air_quality.pm2_5,
+                                    weatherData.forecast.forecastday[0].day.air_quality.pm10,
+                                    weatherData.forecast.forecastday[0].day.air_quality.usEpaIndex,
+                                    weatherData.forecast.forecastday[0].day.air_quality.gbDefraIndex,
+                                )
+                            )
                         }
 
-
-                        val hourlyForecastList =
-                            generateHourlyForecastList(weatherData.forecast.forecastday[0])
-
-                        Spacer(modifier = Modifier.size(30.dp))
-                        Text(
-                            text = "${weatherData.forecast.forecastday[0].day.condition.text}. Low ${weatherData.forecast.forecastday[0].day.mintemp_c}°C",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.ExtraLight,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 21.dp),
-                            textAlign = TextAlign.Start
-                        )
-                        Spacer(modifier = Modifier.size(6.dp))
-                        ForecastHourlyMenu(items = hourlyForecastList)
-                        Button(onClick = {
-                            navController.navigate("future_prediction_screen")
-                        }) {
-                            Text(text = "click")
-                        }
-                        Spacer(modifier = Modifier.size(15.dp))
-                        WeatherDetailItem(
-                            item = WeatherDetailContent(
-                                weatherData,
-                                weatherData.location.name,
-                                weatherData.location.region,
-                                weatherData.forecast.forecastday[0].astro.sunrise,
-                                weatherData.forecast.forecastday[0].astro.sunset,
-                                weatherData.forecast.forecastday[0].astro.moonrise,
-                                weatherData.forecast.forecastday[0].astro.moonset,
-                                weatherData.current.feelslike_c,
-                                weatherData.forecast.forecastday[0].day.maxtemp_c,
-                                weatherData.forecast.forecastday[0].day.mintemp_c,
-                                weatherData.current.wind_kph,
-                                weatherData.current.wind_degree,
-                                weatherData.current.wind_dir,
-                                weatherData.current.humidity,
-                                weatherData.current.dewpoint_c,
-                                weatherData.current.pressure_mb,
-                                weatherData.current.uv,
-                                weatherData.current.vis_km,
-                                weatherData.forecast.forecastday[0].astro.moon_phase
-                            )
-                        )
-                        AirQualityItem(
-                            item = AirQualityContent(
-                                weatherData.forecast.forecastday[0].day.air_quality.co,
-                                weatherData.forecast.forecastday[0].day.air_quality.no2,
-                                weatherData.forecast.forecastday[0].day.air_quality.o3,
-                                weatherData.forecast.forecastday[0].day.air_quality.so2,
-                                weatherData.forecast.forecastday[0].day.air_quality.pm2_5,
-                                weatherData.forecast.forecastday[0].day.air_quality.pm10,
-                                weatherData.forecast.forecastday[0].day.air_quality.usEpaIndex,
-                                weatherData.forecast.forecastday[0].day.air_quality.gbDefraIndex,
-                            )
-                        )
                     }
-
                 }
             }
         }
     }
+
 }
 
+@Composable
+fun SplashScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.weather_splash),
+            contentDescription = "",
+            modifier = Modifier.size(300.dp)
+        )
+    }
+}
 
 @Composable
 fun ForecastHourlyMenu(items: List<ForecastHourlyContent>) {

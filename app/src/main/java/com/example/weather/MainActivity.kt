@@ -3,6 +3,7 @@ package com.example.weather
 import android.content.Context
 import android.location.LocationManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -90,12 +91,16 @@ class MainActivity : ComponentActivity() {
 
                         val isGpsEnabled =
                             locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                        if (isGpsEnabled) {
-//                            Toast.makeText(this@MainActivity, "gps here", Toast.LENGTH_SHORT).show()
-                        } else {
 
-//                            Toast.makeText(this@MainActivity, "gps not", Toast.LENGTH_SHORT).show()
+                        if (!isGpsEnabled) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Please enable location service",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
+
+
 
 
                         NavHost(navController = navController, startDestination = "main_screen") {
@@ -107,7 +112,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("search_screen") {
-                                SearchScreen(viewModel = weatherViewModel, navController = navController)
+                                SearchScreen(
+                                    viewModel = weatherViewModel,
+                                    navController = navController
+                                )
                             }
                             composable("searched_display/{location}") {
 
@@ -123,7 +131,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             composable("future_prediction_screen") {
-                                FuturePredictionScreen(viewModel = weatherViewModel, location = "")
+                                FuturePredictionScreen(viewModel = weatherViewModel)
                             }
                         }
                     }
@@ -133,4 +141,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

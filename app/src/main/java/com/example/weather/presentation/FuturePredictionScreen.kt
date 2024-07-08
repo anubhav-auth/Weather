@@ -26,12 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.R
-import com.example.weather.data.ApiKey
 import com.example.weather.data.ImageData
 import com.example.weather.data.model.weather.Forecast
 import com.example.weather.data.model.weather.Forecastday
 import com.example.weather.ui.theme.cardBackgroundColor
-import kotlin.math.sign
 
 fun String.dateFormat(): String {
     val a = this.split("-")
@@ -39,8 +37,7 @@ fun String.dateFormat(): String {
 }
 
 @Composable
-fun FuturePredictionScreen(viewModel: WeatherViewModel, location: String) {
-
+fun FuturePredictionScreen(viewModel: WeatherViewModel) {
 
     val weatherData by viewModel.weatherData.collectAsState()
     weatherData?.let {
@@ -111,7 +108,11 @@ fun ForecastItem(item: Forecastday) {
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.size(6.dp))
-                Text(text = "${item.day.daily_chance_of_rain}%", color = Color.White, fontSize = 15.sp)
+                Text(
+                    text = "${item.day.daily_chance_of_rain}%",
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
             }
 
             Row(
@@ -126,7 +127,11 @@ fun ForecastItem(item: Forecastday) {
                     )
                 }
                 Spacer(modifier = Modifier.size(6.dp))
-                Text(text = "${item.day.maxtemp_c}°/${item.day.mintemp_c}°", color = Color.White, fontSize = 15.sp)
+                Text(
+                    text = "${item.day.maxtemp_c}°/${item.day.mintemp_c}°",
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
             }
 
 

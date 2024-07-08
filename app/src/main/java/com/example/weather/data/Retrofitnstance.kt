@@ -1,6 +1,5 @@
 package com.example.weather.data
 
-import com.example.weather.presentation.IpService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -17,18 +16,12 @@ object Retrofitnstance {
         .build()
 
     val api: Api = Retrofit
-            .Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(Api.BASE_URL)
-            .client(
-                client
-            ).build().create(Api::class.java)
-
-    val ipService = Retrofit.Builder()
-        .baseUrl("https://api.ipify.org")
+        .Builder()
         .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(IpService::class.java)
+        .baseUrl(Api.BASE_URL)
+        .client(
+            client
+        ).build().create(Api::class.java)
 
 }
 
