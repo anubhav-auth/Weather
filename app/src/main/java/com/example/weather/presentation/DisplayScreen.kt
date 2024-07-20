@@ -291,14 +291,14 @@ fun DisplayScreen(
                             )
                             AirQualityItem(
                                 item = AirQualityContent(
-                                    weatherData.forecast.forecastday[0].day.air_quality.co,
-                                    weatherData.forecast.forecastday[0].day.air_quality.no2,
-                                    weatherData.forecast.forecastday[0].day.air_quality.o3,
-                                    weatherData.forecast.forecastday[0].day.air_quality.so2,
-                                    weatherData.forecast.forecastday[0].day.air_quality.pm2_5,
-                                    weatherData.forecast.forecastday[0].day.air_quality.pm10,
-                                    weatherData.forecast.forecastday[0].day.air_quality.usEpaIndex,
-                                    weatherData.forecast.forecastday[0].day.air_quality.gbDefraIndex,
+                                    weatherData.current.air_quality.co,
+                                    weatherData.current.air_quality.no2,
+                                    weatherData.current.air_quality.o3,
+                                    weatherData.current.air_quality.so2,
+                                    weatherData.current.air_quality.pm2_5,
+                                    weatherData.current.air_quality.pm10,
+                                    weatherData.current.air_quality.usEpaIndex,
+                                    weatherData.current.air_quality.gbDefraIndex,
                                 )
                             )
                         }
